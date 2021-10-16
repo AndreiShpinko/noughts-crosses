@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>noughts and crosses</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="shortcut icon" href="img/favicon.png" type="image/png">
+  </head>
+  <body>
+    <main>
+      <div class="table">
+        <div class="icon-cross"></div>
+        <div class="winTable">
+          <span class="winX">0</span>
+        </div>
+        <div class="winTable">
+          <span class="win0">0</span>
+        </div>
+        <div class="icon-circle"></div>
+      </div>
+      <h1 class="title">Result</h1>
+      <button class="restart">Restart</button>
+      <div class="wrapper">
+        <div class="line">
+          <div class="box" data-number="box1"></div>
+          <div class="box" data-number="box2"></div>
+          <div class="box" data-number="box3"></div>
+        </div>
+        <div class="line">
+          <div class="box" data-number="box4"></div>
+          <div class="box" data-number="box5"></div>
+          <div class="box" data-number="box6"></div>
+        </div>
+        <div class="line">
+          <div class="box" data-number="box7"></div>
+          <div class="box" data-number="box8"></div>
+          <div class="box" data-number="box9"></div>
+        </div>
+        <div class="winLine"></div>
+        <div class="gridLine" data-position="vertical"></div>
+        <div class="gridLine" data-position="vertical"></div>
+        <div class="gridLine" data-position="horizontal"></div>
+        <div class="gridLine" data-position="horizontal"></div>
+      </div>
+      <script src="js/script.js"></script>
+    </main>
+  </body>
+</html>
