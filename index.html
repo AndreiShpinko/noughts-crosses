@@ -11,46 +11,50 @@
       href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="css/reset.css" />
     <link rel="stylesheet" href="css/style.css" />
-    <link rel="shortcut icon" href="img/favicon.png" type="image/png">
+    <link rel="shortcut icon" href="img/favicon.png" type="image/png" />
   </head>
   <body>
     <main>
-      <div class="table">
-        <div class="icon-cross"></div>
-        <div class="winTable">
-          <span class="winX">0</span>
-        </div>
-        <div class="winTable">
-          <span class="win0">0</span>
-        </div>
-        <div class="icon-circle"></div>
-      </div>
-      <h1 class="title">Result</h1>
-      <button class="restart">Restart</button>
       <div class="wrapper">
-        <div class="line">
-          <div class="box" data-number="box1"></div>
-          <div class="box" data-number="box2"></div>
-          <div class="box" data-number="box3"></div>
+        <div class="table">
+          <div class="icon-cross"></div>
+
+          <div class="table-score">
+            <span class="winX">0</span>
+          </div>
+          <div class="table-score">
+            <span class="win0">0</span>
+          </div>
+
+          <div class="icon-nought"></div>
         </div>
-        <div class="line">
-          <div class="box" data-number="box4"></div>
-          <div class="box" data-number="box5"></div>
-          <div class="box" data-number="box6"></div>
+
+        <h1 class="title">Result</h1>
+
+        <button class="btn-restart">Restart</button>
+
+        <div class="box">
+          <div class="item" data-id="1"></div>
+          <div class="item" data-id="2"></div>
+          <div class="item" data-id="3"></div>
+          <div class="item" data-id="4"></div>
+          <div class="item" data-id="5"></div>
+          <div class="item" data-id="6"></div>
+          <div class="item" data-id="7"></div>
+          <div class="item" data-id="8"></div>
+          <div class="item" data-id="9"></div>
+
+          <div>
+            <div class="line" data-position="vertical"></div>
+            <div class="line" data-position="vertical"></div>
+            <div class="line" data-position="horizontal"></div>
+            <div class="line" data-position="horizontal"></div>
+          </div>
         </div>
-        <div class="line">
-          <div class="box" data-number="box7"></div>
-          <div class="box" data-number="box8"></div>
-          <div class="box" data-number="box9"></div>
-        </div>
-        <div class="winLine"></div>
-        <div class="gridLine" data-position="vertical"></div>
-        <div class="gridLine" data-position="vertical"></div>
-        <div class="gridLine" data-position="horizontal"></div>
-        <div class="gridLine" data-position="horizontal"></div>
       </div>
-      <script src="js/script.js"></script>
     </main>
+    <script src="js/script.js"></script>
   </body>
 </html>

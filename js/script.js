@@ -1,330 +1,167 @@
-let boxes = document.querySelectorAll(".box");
-let wrapper = document.querySelector(".wrapper");
-let currentIcon = 0;
-let winX = 0;
-let win0 = 0;
+const box = document.querySelector(".box");
 
-keyGame();
-document.querySelector("button.restart").addEventListener("click", () => {
-  restart();
-});
-
-function restart() {
-  winX = 0;
+let winX = 0,
   win0 = 0;
-  updateScore(2);
-  boxes.forEach((box) => {
-    controlIcon(box, "");
-  });
-  restopWork();
-  removeLine();
-}
 
-boxes.forEach((box) => {
-  box.addEventListener("click", () => {
-    writeIn(box);
-    checkWin();
-  });
+// [0, 1] = [0, x]
+let currSign = Math.round(Math.random());
+
+box.addEventListener("click", (e) => {
+  let item = e.target.closest(".item");
+  if (!item) return;
+
+  if (box.classList.contains("box-restart")) {
+    reloadGame();
+    return;
+  }
+
+  if (!item.classList.contains("sign")) {
+    giveSignToItem(item, currSign);
+    currSign = currSign ? 0 : 1;
+
+    let [winComb, sign] = getWinCombs();
+    if (winComb) {
+      // Win X or 0
+      setTitle(sign);
+
+      sign ? ++winX : ++win0;
+      updateScore();
+      box.classList.add("box-restart");
+      lightWinComb(winComb);
+    } else if (box.querySelectorAll(".item.sign").length === 9) {
+      // Draw
+      setTitle(2);
+
+      ++win0;
+      ++winX;
+      updateScore();
+      box.classList.add("box-restart");
+    }
+  } else if (!item.classList.contains("alert")) {
+    alertItem(item);
+  }
 });
 
-function keyGame() {
-  document.addEventListener("keydown", function (e) {
-    if (e.code == "KeyR") {
-      restart();
-    }
-    // ===============================
-    //     let numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-    //     if (numbers.includes(e.key)) {
-    //       writeIn(document.querySelector(`[data-number=box${e.key}]`));
-    //       checkWin();
-    //     }
-  });
-}
+document.querySelector(".btn-restart").addEventListener("click", () => {
+  reloadGame();
 
-function writeIn(box) {
-  if (!box.getAttribute("data-icon")) {
-    // Нажимают на пустую клетку
-    if (currentIcon === 0) {
-      currentIcon = 1;
-      controlIcon(box, "X");
-    } else {
-      currentIcon = 0;
-      controlIcon(box, "0");
+  winX = win0 = 0;
+  updateScore();
+  setTitle();
+});
+
+function getWinCombs() {
+  const itemsCrosses = document.querySelectorAll(".item.sign.cross");
+  const itemsNoughts = document.querySelectorAll(".item.sign.nought");
+
+  if (itemsCrosses.length <= 2 && itemsNoughts.length <= 2)
+    return [false, false];
+  const winCombs = ["123", "456", "789", "147", "258", "369", "159", "357"];
+
+  let combsCrosses = [...itemsCrosses].map((el) => el.dataset.id);
+  let combsNoughts = [...itemsNoughts].map((el) => el.dataset.id);
+
+  let answer;
+  for (let winComb of winCombs) {
+    if (
+      combsCrosses.includes(winComb[0]) &&
+      combsCrosses.includes(winComb[1]) &&
+      combsCrosses.includes(winComb[2])
+    ) {
+      answer = [winComb, 1];
     }
-  } else {
-    // Нажимают на не пустую клетку
-    alertBox(box);
   }
-}
 
-// Функция проверяющая победу
-function checkWin() {
-  i = 0;
-  //                   г    в         г         в    г    в
-  let combinations = [123, 147, 159, 456, 357, 258, 789, 369];
-  for (let comb = 0; comb < combinations.length; comb++) {
-    if (checkCombination(combinations[comb])) {
-      //Определяем победил крест или ноль
-      let winIcon = document.querySelector(`[data-number=box${String(combinations[comb]).split('')[0]}]`).getAttribute('data-icon');
-      printTitle("Win " + winIcon);
-      if (winIcon == "X") {
-        winX += 1;
-        updateScore(1);
-      } else {
-        win0 += 1;
-        updateScore(0);
-      }
-      stopWork();
-      printLine(combinations[comb]);
-      buffer();
-      break;
-    } else {
-      let sumIcon = 0;
-      boxes.forEach((box) => {
-        if (box.getAttribute("data-icon")) sumIcon += 1;
-      });
-      if (sumIcon === 9) {
-        i++;
-        if (i === 8) {
-          printTitle("Draw");
-          winX += 1;
-          win0 += 1;
-          updateScore(2);
-          stopWork();
-          buffer();
-        }
+  if (!answer) {
+    for (let winComb of winCombs) {
+      if (
+        combsNoughts.includes(winComb[0]) &&
+        combsNoughts.includes(winComb[1]) &&
+        combsNoughts.includes(winComb[2])
+      ) {
+        answer = [winComb, 0];
       }
     }
   }
+
+  return answer || [false, false];
 }
 
-// true - если каждый элемент комбинации равен либо Х либо 0 и false - если не равен или пуст
-function checkCombination(i) {
-  let numbers = String(i).split(""); //создаем массив из трех цифра числа i
-  let result = true;
+function giveSignToItem(el, sign) {
+  el.classList.add("sign", sign ? "cross" : "nought");
 
-  numbers.forEach((number) => {
-    //если хоть один элемент пуст, возвращаем false
-    if (
-      !document
-        .querySelector(`[data-number=box${number}]`)
-        .getAttribute("data-icon")
-    ) {
-      result = false;
-    }
-  });
-
-  let resultValue = document
-    .querySelector(`[data-number=box${numbers[0]}]`)
-    .getAttribute("data-icon");
-
-  for (let number = 1; number <= 3; number++) {
-    if (
-      document
-        .querySelector(`[data-number=box${numbers[number - 1]}]`)
-        .getAttribute("data-icon") == resultValue
-    ) {
-      continue;
-    } else {
-      result = false;
-      break;
-    }
-  }
-  return result;
+  const elSign = document.createElement("div");
+  elSign.classList.add(sign ? "icon-cross" : "icon-nought");
+  el.prepend(elSign);
 }
 
-function printTitle(text) {
-  document.querySelector("h1.title").style.opacity = 0;
+function alertItem(el) {
+  el.classList.add("alert");
   setTimeout(() => {
-    document.querySelector("h1.title").innerHTML = text;
-    document.querySelector("h1.title").style.opacity = 1;
+    el.classList.remove("alert");
+  }, 1500);
+}
+
+function setTitle(st = 3) {
+  const title = document.querySelector(".title");
+  const content = ["Win 0", "Win X", "Draw", "x0"];
+
+  title.style.opacity = 0;
+  setTimeout(() => {
+    title.innerHTML = content[st];
+    title.style.opacity = 1;
   }, 300);
 }
 
-function updateScore(status) {
-  let elementWinX = document.querySelector(".winX");
-  let elementWin0 = document.querySelector(".win0");
+function updateScore() {
+  const elWinX = document.querySelector(".winX");
+  const elWin0 = document.querySelector(".win0");
 
-  elementWinX.style.transition = "0.5s";
-  elementWin0.style.transition = "0.5s";
-  if (status === 0) {
-    elementWin0.style.opacity = 0;
-    elementWin0.style.transform = "translateY(-40px)";
-  }
-  if (status === 1) {
-    elementWinX.style.opacity = 0;
-    elementWinX.style.transform = "translateY(-40px)";
-  }
-  if (status === 2) {
-    elementWin0.style.opacity = 0;
-    elementWin0.style.transform = "translateY(-40px)";
-    elementWinX.style.opacity = 0;
-    elementWinX.style.transform = "translateY(-40px)";
-  }
+  elWinX.style.transition = "0.5s";
+  elWin0.style.transition = "0.5s";
 
-  setTimeout(() => {
-    if (status === 0) {
-      elementWin0.innerHTML = win0;
-      elementWin0.style.opacity = 1;
-      elementWin0.style.transform = "translateY(0px)";
-    }
-    if (status === 1) {
-      elementWinX.innerHTML = winX;
-      elementWinX.style.opacity = 1;
-      elementWinX.style.transform = "translateY(0px)";
-    }
-    if (status === 2) {
-      elementWin0.innerHTML = win0;
-      elementWin0.style.opacity = 1;
-      elementWin0.style.transform = "translateY(0px)";
-
-      elementWinX.innerHTML = winX;
-      elementWinX.style.opacity = 1;
-      elementWinX.style.transform = "translateY(0px)";
-    }
-  }, 500);
-}
-
-function stopWork() {
-  boxes.forEach((box) => {
-    box.style.pointerEvents = "none";
-  });
-
-  wrapper.style.opacity = "0.6";
-}
-
-function restopWork() {
-  boxes.forEach((box) => {
-    box.style.pointerEvents = "auto";
-    controlIcon(box, "");
-  });
-  document.querySelector(".wrapper").style.opacity = "";
-}
-
-function printLine(comb) {
-  let numbers = String(comb).split("");
-  let elementLine = document.querySelector(".winLine");
-  // Для горизонтальных
-  if (Number(numbers[1]) - Number(numbers[0]) === 1) {
-    elementLine.style.width = "95%";
-    elementLine.style.height = "4px";
-    elementLine.style.top =
-      document.querySelector(`[data-number=box${numbers[0]}]`).offsetTop +
-      document.querySelector(`[data-number=box${numbers[0]}]`).offsetHeight /
-        2 -
-      2 +
-      "px";
-    elementLine.style.left = (wrapper.offsetWidth * 0.05) / 2 + "px";
-    elementLine.style.transform = "";
-  }
-  // Для вертикальных
-  else if (Number(numbers[1]) - Number(numbers[0]) === 3) {
-    elementLine.style.width = "4px";
-    elementLine.style.height = "95%";
-    elementLine.style.top = (wrapper.offsetHeight * 0.05) / 2 + "px";
-    elementLine.style.left =
-      document.querySelector(`[data-number=box${numbers[0]}]`).offsetLeft +
-      document.querySelector(`[data-number=box${numbers[0]}]`).offsetWidth / 2 -
-      2 +
-      "px";
-    elementLine.style.transform = "";
-  }
-  // Наискось
-  else if (comb === 159 || comb === 357) {
-    let width = Math.floor((2 / Math.sqrt(2)) * wrapper.offsetWidth * 0.95);
-
-    elementLine.style.width = width + "px";
-    elementLine.style.height = "4px";
-    elementLine.style.top = wrapper.offsetHeight * 0.5 - 1 + "px";
-    // elementLine.style.left = "-" + Math.round(((1 - Math.sqrt(2) / 2) * width) / 2 - 8) + "px";
-    elementLine.style.left = '-52px';
-    elementLine.style.transform =
-      comb === 159 ? "rotateZ(45deg)" : "rotateZ(-45deg)";
-  }
-  elementLine.classList.add("active");
-  setTimeout(() => {
-    elementLine.style.transition = "0.3s";
-    elementLine.style.backgroundColor = "red";
-  }, 1);
-}
-
-function removeLine() {
-  let elementLine = document.querySelector(".winLine");
-  elementLine.classList.remove("active");
-  elementLine.style.transition = "";
-  elementLine.style.backgroundColor = "";
-}
-
-function buffer() {
-  let buffer = document.createElement("div");
-  buffer.classList.add("buffer");
-  wrapper.append(buffer);
-  document.addEventListener("keydown", function (e) {
-    if (e.code == "Enter" || e.code == "Space") {
-      restopWork();
-      removeLine();
-      buffer.remove();
-    }
-  });
-  buffer.addEventListener("click", () => {
-    restopWork();
-    removeLine();
-    buffer.remove();
-  });
-}
-
-function controlIcon(el, content) {
-  el.setAttribute("data-icon", content);
-  if (content == "0") {
-    let circle = document.createElement("div");
-    circle.classList.add("icon-circle");
-    el.prepend(circle);
+  if (elWinX.innerHTML != winX) {
+    elWinX.style.opacity = 0;
+    elWinX.style.transform = "translateY(-40px)";
     setTimeout(() => {
-      el.querySelector(".icon-circle").style.border =
-        "7px solid rgba(59, 65, 219, 0.95)";
-    }, 1);
-  } else if (content == "" && el.querySelector(".icon-circle")) {
-    el.querySelector(".icon-circle").remove();
+      elWinX.innerHTML = winX;
+      elWinX.style.opacity = 1;
+      elWinX.style.transform = "translateY(0px)";
+    }, 500);
+  }
+  if (elWin0.innerHTML != win0) {
+    elWin0.style.opacity = 0;
+    elWin0.style.transform = "translateY(-40px)";
+    setTimeout(() => {
+      elWin0.innerHTML = win0;
+      elWin0.style.opacity = 1;
+      elWin0.style.transform = "translateY(0px)";
+    }, 500);
   }
 }
 
-function alertBox(box) {
-  box.classList.add('alert');
-  setTimeout(() => {
-    box.classList.remove('alert');
-  }, 1000);
+function reloadGame() {
+  box.classList.remove("box-restart");
+
+  const items = document.querySelectorAll(".item.sign");
+  items.forEach((item) => {
+    item.classList.remove("sign", "cross", "nought");
+    item.innerHTML = "";
+  });
+
+  delightWinComb();
 }
-//
 
-let gridLinesV = document.querySelectorAll(
-  ".gridLine[data-position = vertical]"
-);
-gridLinesV.forEach((el) => {
-  el.style.width = "4px";
-  el.style.height = "95%";
-});
-gridLinesV[0].style.left =
-  wrapper.offsetWidth / 3 - gridLinesV[0].offsetWidth / 2 + "px";
-gridLinesV[0].style.top =
-  (wrapper.offsetHeight - gridLinesV[0].offsetHeight) / 2 + "px";
-gridLinesV[1].style.left =
-  (wrapper.offsetWidth / 3) * 2 - gridLinesV[0].offsetWidth / 2 + "px";
-gridLinesV[1].style.top =
-  (wrapper.offsetHeight - gridLinesV[0].offsetHeight) / 2 + "px";
+function lightWinComb(comb) {
+  [...comb].forEach((el) => {
+    document
+      .querySelector(`.item.sign[data-id = "${el}"]`)
+      .classList.add("light");
+  });
+}
 
-let gridLinesH = document.querySelectorAll(
-  ".gridLine[data-position = horizontal]"
-);
-gridLinesH.forEach((el) => {
-  el.style.height = "4px";
-  el.style.width = "95%";
-});
-
-gridLinesH[0].style.left =
-  (wrapper.offsetWidth - gridLinesH[0].offsetWidth) / 2 + "px";
-gridLinesH[0].style.top =
-  wrapper.offsetHeight / 3 - gridLinesH[0].offsetHeight / 2 + "px";
-gridLinesH[1].style.left =
-  (wrapper.offsetWidth - gridLinesH[0].offsetWidth) / 2 + "px";
-gridLinesH[1].style.top =
-  (wrapper.offsetHeight / 3) * 2 - gridLinesH[0].offsetHeight / 2 + "px";
+function delightWinComb() {
+  document.querySelectorAll(`.item.light`).forEach((el) => {
+    el.classList.remove("light");
+  });
+}
